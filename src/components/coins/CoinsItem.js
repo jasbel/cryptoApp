@@ -7,9 +7,9 @@ const CoinsItem = (props) => {
 
     getImageArrow = () => {
         if (item.percent_change_1h > 0) {
-            return require('initial/src/assets/arrow_up.png');
+            return require('cryptoapp/src/assets/arrow_up.png');
         } else {
-            return require('initial/src/assets/arrow_down.png');
+            return require('cryptoapp/src/assets/arrow_down.png');
         }
     }
 

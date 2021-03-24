@@ -1,8 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
-import Http from 'initial/src/libs/http';
-import Colors from 'initial/src/res/colors';
+import Colors from '../../res/colors';
+import Http from '../../libs/http';
 
 import CoinsItem from './CoinsItem'
 import CoinsSearch from './CoinsSearch';

@@ -1,7 +1,7 @@
 import React from 'react'
 import { FlatList, Image, SectionList, StyleSheet, Text, View } from 'react-native'
 import colors from '../../res/colors';
-import Http from 'initial/src/libs/http';
+import Http from '../../libs/http';
 import CoinMarketItem from './CoinMarketItem';
 
 
