@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Storage {
-    static instance = Storage();
+    static instance = new Storage()
     store = async (key, value) => {
         try {
             await AsyncStorage.setItem(key, value);
@@ -49,3 +49,5 @@ class Storage {
         }
     };
 }
+
+export default Storage;

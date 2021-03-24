@@ -1,15 +1,73 @@
 import React from 'react'
-import { FlatList, Image, SectionList, StyleSheet, Text, View } from 'react-native'
+import { Alert, FlatList, Image, Pressable, SectionList, StyleSheet, Text, View } from 'react-native'
 import colors from '../../res/colors';
 import Http from '../../libs/http';
 import CoinMarketItem from './CoinMarketItem';
+import Storage from '../../libs/storage';
 
 
 class CoinDetailScreen extends React.Component {
 
     state = {
         coin: {},
-        markets: []
+        markets: [],
+        isFavorite: false
+
+    }
+
+    toggleFavorite = () => {
+        if(this.state.isFavorite) {
+            this.removeFavorite()
+        } else {
+            this.addFavorite();
+        }
+    }
+
+    addFavorite =async () => {
+        const coin = JSON.stringify(this.state.coin);
+        const key = `favorite-${this.state.coin.id}`;
+
+        const stored = await Storage.instance.store(key, coin);
+
+        if(stored) {
+            this.setState({ isFavorite: true });
+        }
+    }
+
+    removeFavorite = () => {
+
+        Alert.alert("Remove favorite", "Are You Sure ?", [
+            {
+                text: 'cancel',
+                onPress: () => {},
+                style: "cancel"
+            },
+            {
+                text: "Remove",
+                onPress: async () => {
+                    const key = `favorite-${this.state.coin.id}`;
+                    
+                    const instanceRemove = await Storage.instance.remove(key);
+
+                    this.setState({ isFavorite: false });
+                },
+                style: "destructive"
+            }
+        ]);
+    }
+
+    getFavorite = async () => {
+        try {
+            const key = `favorite-${this.state.coin.id}`;
+
+            const favStr = await Storage.instance.get(key);
+
+            if(favStr !== null) {
+                this.setState({ isFavorite: true })
+            }
+        } catch (error) {
+            console.log(" Get FAvorite error:  ",error);
+        }
     }
 
     getSymbolIcon = (coinNameId) => {
@@ -52,21 +110,38 @@ class CoinDetailScreen extends React.Component {
 
         this.getMarkets(coin.id);
 
-        this.setState({ coin })
+        this.setState({ coin }, () => {
+            this.getFavorite();
+        })
     }
 
     render() {
 
-        const { coin, markets } = this.state;
+        const { coin, markets, isFavorite } = this.state;
 
         return (
             <View style={styles.container}>
                 <View style={styles.subHeader}>
-                    <Image
-                        style={styles.iconImg}
-                        source={{ uri: this.getSymbolIcon(coin.nameid) }}
-                    />
-                    <Text style={styles.titleText}> {coin.name} </Text>
+                    <View style={styles.row}>
+                        <Image
+                            style={styles.iconImg}
+                            source={{ uri: this.getSymbolIcon(coin.nameid) }}
+                        />
+                        <Text style={styles.titleText}> {coin.name} </Text>
+                    </View>
+
+                    <Pressable 
+                        onPress={this.toggleFavorite}
+                        style={[
+                            styles.btnFavorite,
+                            isFavorite ?
+                                styles.btnFavoriteRemove :
+                                styles.btnFavoriteAdd
+                        ]}
+                    >
+                        <Text style={[styles.btnFavoriteText]}> { isFavorite ? "Remove Favorite" :"Add a Favorite"   }</Text>
+                    </Pressable>
+
                 </View>
                 <SectionList
                     style={styles.section}
@@ -104,10 +179,15 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.charade,
     },
+    row: {
+        flexDirection: 'row',
+    },
     subHeader: {
         backgroundColor: 'rgba(0,0,0,0.1)',
         padding: 16,
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
     },
     titleText: {
         fontSize: 16,
@@ -142,6 +222,69 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
     },
+    marketsTitle: {
+        color: colors.white,
+        fontSize: 16,
+        fontWeight: "bold",
+        marginBottom: 16,
+        marginLeft: 16
+    },
+    btnFavorite: {
+        padding: 8,
+        borderRadius: 8
+    },
+    btnFavoriteText: {
+        color: '#fff'
+    },
+    btnFavoriteAdd: {
+        backgroundColor: colors.picton,
+    },
+    btnFavoriteRemove: {
+        backgroundColor: colors.carmine,
+    }
 });
 
 export default CoinDetailScreen
+
+
+/* TRabajando con hook */
+/* 
+SI ESTAN TRABAJANDO CON HOOKS Y EL REMOVE FAVORITES NO LES FUNCIONA
+
+Pase como parámetro la coin que luego recibirán en el useEffect(). Ya que si llaman directamente al estado en getFavorite() todas las criptos van a setearse en “Fav” debido a que la key se forma con el estado general.
+
+Antes del bug
+
+const getFavorite = async () => {
+    try {
+	// nótese como pasaba mi estado general directamente a la funcion
+      const key = `favorite-${cryptoCoin.id}`;
+
+      const favStr = await Storage.instance.get(key);
+
+      if (favStr != null) {
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      console.log('getFavorite error', error);
+    }
+  };
+Arreglado el bug
+
+const getFavorite = async (coin) => {
+    try {
+	//pasé como parámetro el coin que luego lo recibiré en el useEffect()
+	// de esta forma individualizo los estados y ya funciona
+      const key = `favorite-${coin.id}`;
+
+      const favStr = await Storage.instance.get(key);
+
+      if (favStr != null) {
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      console.log('getFavorite error', error);
+    }
+  };
+
+*/
