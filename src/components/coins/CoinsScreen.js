@@ -18,7 +18,6 @@ class CoinsScreen extends React.Component {
 
     componentDidMount = () => {
         this.getCoins();
-        
     }
 
     getCoins = async () => {
